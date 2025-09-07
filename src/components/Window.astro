@@ -1,0 +1,49 @@
+---
+// Windows 3.1 style window component with title bar and controls
+import CloseIcon from "./CloseIcon.astro";
+import MaximizeIcon from "./MaximizeIcon.astro";
+import MinimizeIcon from "./MinimizeIcon.astro";
+
+export interface Props {
+  title?: string;
+  class?: string;
+}
+
+const { title = "Window", class: className = "" } = Astro.props;
+---
+
+<div
+  class={`h-full max-w-4xl mx-auto bg-[#c0c0c0] border-2 border-[#c0c0c0] win31-outset flex flex-col ${className}`}
+>
+  <!-- Window Title Bar -->
+  <div
+    class="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-0.5 py-0.5 flex justify-between items-center text-[11px] md:text-[10px] font-bold border-b border-gray-500"
+  >
+    <div class="px-1.5 py-0.5 flex-grow">{title}</div>
+    <div class="flex gap-0.5">
+      <button
+        class="w-4 h-3.5 bg-[#c0c0c0] win31-button-outset text-[8px] font-bold text-black cursor-pointer flex items-center justify-center p-0 hover:bg-[#d4d0c8] active:win31-button-inset"
+        aria-label="Minimize"
+      >
+        <MinimizeIcon />
+      </button>
+      <button
+        class="w-4 h-3.5 bg-[#c0c0c0] win31-button-outset text-[8px] font-bold text-black cursor-pointer flex items-center justify-center p-0 hover:bg-[#d4d0c8] active:win31-button-inset"
+        aria-label="Maximize"
+      >
+        <MaximizeIcon />
+      </button>
+      <button
+        class="w-4 h-3.5 bg-[#c0c0c0] win31-button-outset text-[8px] font-bold text-black cursor-pointer flex items-center justify-center p-0 hover:bg-[#d4d0c8] active:win31-button-inset"
+        aria-label="Close"
+      >
+        <CloseIcon />
+      </button>
+    </div>
+  </div>
+
+  <!-- Window Content -->
+  <div class="flex-grow overflow-hidden">
+    <slot />
+  </div>
+</div>
