@@ -26,6 +26,27 @@ body {
   box-shadow: inset 1px 1px #808080, inset -1px -1px #dfdfdf;
 }
 
+/* Dark mode variants for Windows 3.1 style effects */
+@media (prefers-color-scheme: dark) {
+  .win31-outset-dark {
+    box-shadow: inset -1px -1px #404040, inset 1px 1px #606060,
+      inset -2px -2px #404040, inset 2px 2px #606060;
+  }
+
+  .win31-inset-dark {
+    box-shadow: inset 1px 1px #404040, inset -1px -1px #606060,
+      inset 2px 2px #404040, inset -2px -2px #606060;
+  }
+
+  .win31-button-outset-dark {
+    box-shadow: inset -1px -1px #404040, inset 1px 1px #606060;
+  }
+
+  .win31-button-inset-dark {
+    box-shadow: inset 1px 1px #404040, inset -1px -1px #606060;
+  }
+}
+
 .cursor-blink {
   animation: blink 1s infinite;
 }
