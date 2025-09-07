@@ -1,0 +1,222 @@
+---
+// Terminal component with Windows 3.1 style window controls
+---
+
+<div class="terminal-window h-full max-w-4xl mx-auto">
+  <!-- Window Title Bar -->
+  <div class="title-bar">
+    <div class="title-bar-text">C:\HELLO.EXE</div>
+    <div class="title-bar-controls">
+      <button class="title-bar-control minimize" aria-label="Minimize">
+        <span class="minimize-icon">_</span>
+      </button>
+      <button class="title-bar-control maximize" aria-label="Maximize">
+        <span class="maximize-icon">□</span>
+      </button>
+      <button class="title-bar-control close" aria-label="Close">
+        <span class="close-icon">×</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Terminal Content -->
+  <div class="terminal-content">
+    <div class="terminal-output">
+      <div class="terminal-line">
+        <span class="prompt">C:\></span>
+        <span class="command">hello.exe</span>
+      </div>
+      <div class="terminal-line blank"></div>
+      <div class="terminal-line">
+        <span class="ascii-art">
+          ██╗ ██╗███████╗██╗ ██╗ ██████╗ ██║ ██║██╔════╝██║ ██║ ██╔═══██╗
+          ███████║█████╗ ██║ ██║ ██║ ██║ ██╔══██║██╔══╝ ██║ ██║ ██║ ██║ ██║
+          ██║███████╗███████╗███████╗╚██████╔╝ ╚═╝ ╚═╝╚══════╝╚══════╝╚══════╝
+          ╚═════╝
+        </span>
+      </div>
+      <div class="terminal-line blank"></div>
+      <div class="terminal-line">
+        <span class="text">Welcome to the retro terminal!</span>
+      </div>
+      <div class="terminal-line">
+        <span class="text">System initialized successfully.</span>
+      </div>
+      <div class="terminal-line">
+        <span class="text">Ready for input...</span>
+      </div>
+      <div class="terminal-line blank"></div>
+      <div class="terminal-line">
+        <span class="prompt">C:\></span>
+        <span class="cursor">█</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .terminal-window {
+    background: #c0c0c0;
+    border: 2px outset #c0c0c0;
+    box-shadow:
+      inset -1px -1px #808080,
+      inset 1px 1px #dfdfdf,
+      inset -2px -2px #808080,
+      inset 2px 2px #dfdfdf;
+    font-family: "MS Sans Serif", sans-serif;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .title-bar {
+    background: linear-gradient(90deg, #0000ff 0%, #000080 100%);
+    color: white;
+    padding: 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    font-weight: bold;
+    border-bottom: 1px solid #808080;
+  }
+
+  .title-bar-text {
+    padding: 2px 6px;
+    flex-grow: 1;
+  }
+
+  .title-bar-controls {
+    display: flex;
+    gap: 2px;
+  }
+
+  .title-bar-control {
+    width: 16px;
+    height: 14px;
+    background: #c0c0c0;
+    border: 1px outset #c0c0c0;
+    font-size: 8px;
+    font-weight: bold;
+    color: black;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .title-bar-control:hover {
+    background: #d4d0c8;
+  }
+
+  .title-bar-control:active {
+    border: 1px inset #c0c0c0;
+  }
+
+  .minimize-icon {
+    font-size: 10px;
+    line-height: 1;
+    margin-top: 4px;
+  }
+
+  .maximize-icon {
+    font-size: 8px;
+    line-height: 1;
+  }
+
+  .close-icon {
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  .terminal-content {
+    background: #000000;
+    color: #00ff00;
+    font-family: "Courier New", "Lucida Console", monospace;
+    font-size: 14px;
+    padding: 8px;
+    flex-grow: 1;
+    overflow-y: auto;
+    line-height: 1.2;
+  }
+
+  .terminal-output {
+    height: 100%;
+  }
+
+  .terminal-line {
+    margin: 0;
+    padding: 0;
+    min-height: 1.2em;
+  }
+
+  .terminal-line.blank {
+    height: 1.2em;
+  }
+
+  .prompt {
+    color: #ffff00;
+    font-weight: bold;
+  }
+
+  .command {
+    color: #ffffff;
+    margin-left: 4px;
+  }
+
+  .text {
+    color: #00ff00;
+  }
+
+  .ascii-art {
+    color: #00ffff;
+    font-size: 10px;
+    line-height: 1;
+    font-family: monospace;
+    white-space: pre;
+    display: block;
+  }
+
+  .cursor {
+    color: #00ff00;
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%,
+    50% {
+      opacity: 1;
+    }
+    51%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .terminal-content {
+      font-size: 12px;
+      padding: 6px;
+    }
+
+    .ascii-art {
+      font-size: 8px;
+    }
+
+    .title-bar {
+      font-size: 10px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .terminal-content {
+      font-size: 10px;
+      padding: 4px;
+    }
+
+    .ascii-art {
+      font-size: 6px;
+    }
+  }
+</style>
