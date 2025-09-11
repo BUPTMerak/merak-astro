@@ -18,8 +18,8 @@ export const WireframeBox: React.FC<React.ComponentProps<"div">> = ({
       className={cn(
         styles["wf-room"],
         "pointer-events-none absolute inset-0 [--wf-bg:transparent]",
-        "dark:[--wf-line:theme(colors.emerald.800)] dark:[--wf-line-strong:theme(colors.emerald.500)]",
-        "[--wf-line:theme(colors.sky.500)] [--wf-line-strong:theme(colors.sky.800)]",
+        "dark:[--wf-line-strong:theme(colors.emerald.500)] dark:[--wf-line:theme(colors.emerald.800)]",
+        "[--wf-line-strong:theme(colors.sky.800)] [--wf-line:theme(colors.sky.500)]",
         className,
       )}
       style={
@@ -35,27 +35,9 @@ export const WireframeBox: React.FC<React.ComponentProps<"div">> = ({
         <div className={styles["wf-scene"]}>
           <div className={cn(styles["wf-plane"], styles["wf-floor"])}></div>
           <div className={cn(styles["wf-plane"], styles["wf-ceiling"])}></div>
-          <div
-            className={cn(
-              styles["wf-plane"],
-              styles["wf-wall"],
-              styles["wf-wall-back"],
-            )}
-          ></div>
-          <div
-            className={cn(
-              styles["wf-plane"],
-              styles["wf-wall"],
-              styles["wf-wall-left"],
-            )}
-          ></div>
-          <div
-            className={cn(
-              styles["wf-plane"],
-              styles["wf-wall"],
-              styles["wf-wall-right"],
-            )}
-          ></div>
+          <div className={cn(styles["wf-plane"], styles["wf-wall"], styles["wf-wall-back"])}></div>
+          <div className={cn(styles["wf-plane"], styles["wf-wall"], styles["wf-wall-left"])}></div>
+          <div className={cn(styles["wf-plane"], styles["wf-wall"], styles["wf-wall-right"])}></div>
         </div>
       </div>
     </div>
