@@ -1,6 +1,5 @@
 ---
-// Terminal component with Windows 3.1 style window controls
-import Window from "./Window.astro";
+import Window from "./Window/Window.astro";
 ---
 
 <Window title="C:\\HELLO.EXE">
@@ -9,7 +8,7 @@ import Window from "./Window.astro";
   >
     <div class="h-full">
       <div class="m-0 min-h-[1.2em] p-0">
-        <span class="font-bold text-yellow-600 dark:text-yellow-400">C:\></span>
+        <span class="font-bold text-yellow-600 dark:text-yellow-400">C:\&gt;</span>
         <span class="ml-1 text-gray-800 dark:text-white">hello.exe</span>
       </div>
       <div class="h-[1.2em]"></div>
@@ -39,7 +38,7 @@ import Window from "./Window.astro";
       </div>
       <div class="h-[1.2em]"></div>
       <div class="m-0 min-h-[1.2em] p-0">
-        <span class="font-bold text-yellow-600 dark:text-yellow-400">C:\></span>
+        <span class="font-bold text-yellow-600 dark:text-yellow-400">C:\&gt;</span>
         <span class="cursor-blink text-green-600 dark:text-green-400">█</span>
       </div>
     </div>

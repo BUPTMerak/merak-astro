@@ -1,6 +1,6 @@
+import { cn } from "@/lib/utils";
 import { useRef } from "react";
-import { useWindowSize, useMouse } from "react-use";
-import { cn } from "../lib/utils";
+import { useMouse, useWindowSize } from "react-use";
 import styles from "./WireframeBox.module.css";
 
 export const WireframeBox: React.FC<React.ComponentProps<"div">> = ({

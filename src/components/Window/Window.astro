@@ -1,8 +1,8 @@
 ---
-// Windows 3.1 style window component with title bar and controls
-import CloseIcon from "./CloseIcon.astro";
-import MaximizeIcon from "./MaximizeIcon.astro";
-import MinimizeIcon from "./MinimizeIcon.astro";
+import { cn } from "@/lib/utils";
+import CloseIcon from "./CloseIcon.svg";
+import MaximizeIcon from "./MaximizeIcon.svg";
+import MinimizeIcon from "./MinimizeIcon.svg";
 
 export interface Props {
   title?: string;
@@ -13,7 +13,10 @@ const { title = "Window", class: className = "" } = Astro.props;
 ---
 
 <div
-  class={`h-full max-w-4xl mx-auto bg-[#c0c0c0] dark:bg-[#505050] border-2 border-[#c0c0c0] dark:border-[#505050] win31-outset dark:win31-outset-dark flex flex-col ${className}`}
+  class={cn(
+    "h-full max-w-4xl mx-auto bg-[#c0c0c0] dark:bg-[#505050] border-2 border-[#c0c0c0] dark:border-[#505050] win31-outset dark:win31-outset-dark flex flex-col",
+    className,
+  )}
 >
   <!-- Window Title Bar -->
   <div
@@ -47,3 +50,19 @@ const { title = "Window", class: className = "" } = Astro.props;
     <slot />
   </div>
 </div>
+<style>
+  .cursor-blink {
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%,
+    50% {
+      opacity: 1;
+    }
+    51%,
+    100% {
+      opacity: 0;
+    }
+  }
+</style>

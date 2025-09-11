@@ -1,12 +1,13 @@
 ---
-import sphereWide from "../assets/sphere_wide.png";
-import { cn } from "../lib/utils";
+import sphereWide from "@/assets/sphere_wide.png";
+import { cn } from "@/lib/utils";
 import { WireframeBox } from "./WireframeBox.tsx";
 ---
 
 <div
   class={cn(
-    "crt relative isolate overflow-hidden border shadow-[inset_0_0_40px_rgba(0,0,0,0.3)] dark:shadow-[inset_0_0_40px_rgba(0,0,0,0.9)] bg-gray-100/90 dark:bg-black/90",
+    "crt relative isolate overflow-hidden border",
+    "shadow-[inset_0_0_40px_rgba(0,0,0,0.3)] dark:shadow-[inset_0_0_40px_rgba(0,0,0,0.9)] bg-gray-100/90 dark:bg-black/90",
     Astro.props.class,
   )}
 >
@@ -109,7 +110,7 @@ import { WireframeBox } from "./WireframeBox.tsx";
   </div>
   <div class="crt-vignette pointer-events-none absolute inset-0"></div>
   <div class="crt-curvature pointer-events-none absolute inset-0"></div>
-  <WireframeBox client:only className="opacity-80" />
+  <WireframeBox client:only="react" className="opacity-80" />
   <div
     class="crt-content relative z-[1] text-gray-800 selection:bg-gray-300/60 selection:text-gray-900 dark:text-emerald-400 dark:selection:bg-emerald-900/60 dark:selection:text-emerald-200"
   >
