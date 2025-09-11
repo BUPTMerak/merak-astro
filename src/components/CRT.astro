@@ -1,8 +1,117 @@
+---
+import sphereWide from "../assets/sphere_wide.png";
+import { cn } from "../lib/utils";
+import { WireframeBox } from "./WireframeBox.tsx";
+---
+
 <div
-  class={`crt relative isolate overflow-hidden border shadow-[inset_0_0_40px_rgba(0,0,0,0.3)] dark:shadow-[inset_0_0_40px_rgba(0,0,0,0.9)] bg-gray-100/90 dark:bg-black/90 ${Astro.props.class ?? ""}`}
+  class={cn(
+    "crt relative isolate overflow-hidden border shadow-[inset_0_0_40px_rgba(0,0,0,0.3)] dark:shadow-[inset_0_0_40px_rgba(0,0,0,0.9)] bg-gray-100/90 dark:bg-black/90",
+    Astro.props.class
+  )}
 >
+  <div class="hidden absolute -top-9999 z-0">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      id="svg-root"
+      width="381"
+      height="166"
+      z-index="-1"
+    >
+      <title id="test-title">filters-dispMap-BE-16</title>
+      <desc id="test-desc"
+        >Test which verifies the basic facilities of feDisplacementMap.</desc
+      >
+      <defs>
+        <filter
+          id="SphereMapTest"
+          filterUnits="objectBoundingBox"
+          x="-0.45"
+          y="-1.29"
+          width="1.6"
+          height="3.5"
+        >
+          <feImage id="mapa" result="Map" xlink:href={sphereWide.src}></feImage>
+          <feDisplacementMap
+            id="despMap"
+            in="SourceGraphic"
+            in2="map"
+            scale="100"
+            xChannelSelector="R"
+            yChannelSelector="G"></feDisplacementMap>
+        </filter>
+        <filter id="colorfill" z-index="1">
+          <feColorMatrix
+            id="colorMain"
+            type="matrix"
+            in="SourceGraphic"
+            result="B"
+            values="
+          1	0	0	0	0
+          0	1	0	0	0
+          0	0	1	0	0
+          0	0	0	1	0
+          "
+          >
+            <animate
+              id="colA"
+              attributeName="values"
+              begin="0s"
+              dur="3.5s"
+              restart="always"
+              repeatCount="1"
+              values="
+          1	0	0	0	0
+          0	1	0	0	0
+          0	0	1	0	0
+          0	0	0	1	0;
+          1	0	0	0	0
+          0	1	0	0	0
+          0	0	1	0	0
+          0	0	0	1	0
+  
+        "
+              fill="freeze"></animate>
+          </feColorMatrix>
+          <feMerge>
+            <feMergeNode in="A"></feMergeNode>
+            <feMergeNode in="B"></feMergeNode>
+          </feMerge>
+        </filter>
+        <filter id="secondFill" z-index="0">
+          <feColorMatrix
+            id="colorSec"
+            type="matrix"
+            in="SourceGraphic"
+            values="
+          0	0	0	0	0
+          0	1	0	0	0
+          0	0	0	0	0
+          0	0	0	1	0 
+                   "
+          ></feColorMatrix>
+        </filter>
+        <filter id="brightness">
+          <feComponentTransfer>
+            <feFuncR id="brR" type="linear" slope="1"></feFuncR>
+            <feFuncG id="brG" type="linear" slope="1"></feFuncG>
+            <feFuncB id="brB" type="linear" slope="1"></feFuncB>
+          </feComponentTransfer>
+        </filter>
+        <filter id="contrast">
+          <feComponentTransfer>
+            <feFuncR id="conR" type="linear" slope="1" intercept="0"></feFuncR>
+            <feFuncG id="conG" type="linear" slope="1" intercept="0"></feFuncG>
+            <feFuncB id="conB" type="linear" slope="1" intercept="0"></feFuncB>
+          </feComponentTransfer>
+        </filter>
+      </defs>
+    </svg>
+  </div>
   <div class="crt-vignette pointer-events-none absolute inset-0"></div>
   <div class="crt-curvature pointer-events-none absolute inset-0"></div>
+  <WireframeBox client:only className="opacity-80" />
   <div
     class="crt-content relative z-[1] text-gray-800 dark:text-emerald-400 selection:bg-gray-300/60 dark:selection:bg-emerald-900/60 selection:text-gray-900 dark:selection:text-emerald-200"
   >
@@ -11,9 +120,9 @@
     </div>
   </div>
 </div>
-
 <style>
   .crt {
+    filter: url(#SphereMapTest) url(#contrast) url(#brightness) url(#colorfill);
     background-image: radial-gradient(
       120% 140% at 50% 50%,
       rgba(100, 100, 100, 0.3),
