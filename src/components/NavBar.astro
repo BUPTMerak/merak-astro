@@ -1,5 +1,7 @@
 ---
 import Window from "./Window/Window.astro";
+
+const icp = import.meta.env.PUBLIC_ICP;
 ---
 
 <Window title="C:\\NAV.EXE" id="nav">
@@ -33,5 +35,15 @@ import Window from "./Window/Window.astro";
     >
       Contact
     </button>
+    {icp && (
+      <a
+        href="https://beian.miit.gov.cn/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="ml-auto text-[10px] text-win-text/60 no-underline hover:text-win-text sm:text-[8px]"
+      >
+        {icp}
+      </a>
+    )}
   </div>
 </Window>
