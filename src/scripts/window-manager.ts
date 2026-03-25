@@ -13,7 +13,7 @@ const TITLE_CLS =
   "flex items-center justify-between border-b border-gray-500 bg-linear-to-r from-blue-600 to-blue-800 px-0.5 py-0.5 text-[11px] font-bold text-white md:text-[10px] dark:border-gray-600 dark:from-blue-800 dark:to-blue-900";
 
 const BTN_CLS =
-  "win31-button-outset dark:win31-button-outset-dark active:win31-button-inset dark:active:win31-button-inset-dark flex h-3.5 w-4 cursor-pointer items-center justify-center bg-[#c0c0c0] p-0 text-[8px] font-bold text-black hover:bg-[#d4d0c8] dark:bg-[#505050] dark:text-white dark:hover:bg-[#606060]";
+  "win31-button-outset active:win31-button-inset flex h-3.5 w-4 cursor-pointer items-center justify-center bg-win-surface p-0 text-[8px] font-bold text-win-text hover:bg-win-surface-hover";
 
 const RESIZE_SVG = `<svg viewBox="0 0 12 12" class="h-full w-full"><line x1="10" y1="2" x2="2" y2="10" stroke="#808080" stroke-width="1"/><line x1="10" y1="5" x2="5" y2="10" stroke="#808080" stroke-width="1"/><line x1="10" y1="8" x2="8" y2="10" stroke="#808080" stroke-width="1"/><line x1="11" y1="2" x2="2" y2="11" stroke="#fff" stroke-width="1"/><line x1="11" y1="5" x2="5" y2="11" stroke="#fff" stroke-width="1"/><line x1="11" y1="8" x2="8" y2="11" stroke="#fff" stroke-width="1"/></svg>`;
 
@@ -171,7 +171,7 @@ function createPopupEl(
   el.setAttribute("data-window", "");
   el.setAttribute("data-window-id", id);
   el.className =
-    "flex flex-col border-2 border-[#c0c0c0] bg-[#c0c0c0] win31-outset dark:win31-outset-dark dark:border-[#505050] dark:bg-[#505050]";
+    "flex flex-col border-2 border-win-surface bg-win-surface win31-outset";
 
   const titleBar = document.createElement("div");
   titleBar.setAttribute("data-window-titlebar", "");

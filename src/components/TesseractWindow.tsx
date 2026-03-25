@@ -352,7 +352,7 @@ export function TesseractWindow() {
     <div
       data-window
       data-window-id="tesseract"
-      className="flex h-full flex-col border-2 border-[#c0c0c0] bg-[#c0c0c0] win31-outset dark:win31-outset-dark dark:border-[#505050] dark:bg-[#505050]"
+      className="flex h-full flex-col border-2 border-win-surface bg-win-surface win31-outset"
     >
       <div
         data-window-titlebar
@@ -363,20 +363,20 @@ export function TesseractWindow() {
         </div>
         <div className="flex gap-0.5">
           <button
-            className="win31-button-outset dark:win31-button-outset-dark active:win31-button-inset dark:active:win31-button-inset-dark flex h-3.5 w-4 cursor-pointer items-center justify-center bg-[#c0c0c0] p-0 text-[8px] font-bold text-black hover:bg-[#d4d0c8] dark:bg-[#505050] dark:text-white dark:hover:bg-[#606060]"
+            className="win31-button-outset active:win31-button-inset flex h-3.5 w-4 cursor-pointer items-center justify-center bg-win-surface p-0 text-[8px] font-bold text-win-text hover:bg-win-surface-hover"
             aria-label="Minimize"
           >
             _
           </button>
           <button
-            className="win31-button-outset dark:win31-button-outset-dark active:win31-button-inset dark:active:win31-button-inset-dark flex h-3.5 w-4 cursor-pointer items-center justify-center bg-[#c0c0c0] p-0 text-[8px] font-bold text-black hover:bg-[#d4d0c8] dark:bg-[#505050] dark:text-white dark:hover:bg-[#606060]"
+            className="win31-button-outset active:win31-button-inset flex h-3.5 w-4 cursor-pointer items-center justify-center bg-win-surface p-0 text-[8px] font-bold text-win-text hover:bg-win-surface-hover"
             aria-label="Maximize"
           >
             &#x25A1;
           </button>
           <button
             data-window-close
-            className="win31-button-outset dark:win31-button-outset-dark active:win31-button-inset dark:active:win31-button-inset-dark flex h-3.5 w-4 cursor-pointer items-center justify-center bg-[#c0c0c0] p-0 text-[8px] font-bold text-black hover:bg-[#d4d0c8] dark:bg-[#505050] dark:text-white dark:hover:bg-[#606060]"
+            className="win31-button-outset active:win31-button-inset flex h-3.5 w-4 cursor-pointer items-center justify-center bg-win-surface p-0 text-[8px] font-bold text-win-text hover:bg-win-surface-hover"
             aria-label="Close"
           >
             &times;

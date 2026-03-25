@@ -1,38 +1,112 @@
 @import "tailwindcss";
 @import "@fontsource/unifont";
 
+/* ── Win 3.1 palette ─────────────────────────────────────────────────────── */
+
+:root {
+  --win-surface: #c0c0c0;
+  --win-surface-hover: #d4d0c8;
+  --win-text: #000;
+
+  --win-bevel-light: #fff;
+  --win-bevel-light-inner: #dfdfdf;
+  --win-bevel-dark: #808080;
+  --win-bevel-dark-inner: #000;
+
+  --win-btn-bevel-light: #fff;
+  --win-btn-bevel-dark: #808080;
+
+  --win-scrollbar-dither-a: #fff;
+  --win-scrollbar-dither-b: #c0c0c0;
+  --win-scrollbar-size: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --win-surface: #505050;
+    --win-surface-hover: #606060;
+    --win-text: #fff;
+
+    --win-bevel-light: #808080;
+    --win-bevel-light-inner: transparent;
+    --win-bevel-dark: #000;
+    --win-bevel-dark-inner: transparent;
+
+    --win-btn-bevel-light: #707070;
+    --win-btn-bevel-dark: #000;
+
+    --win-scrollbar-dither-a: #606060;
+    --win-scrollbar-dither-b: #404040;
+  }
+}
+
+/* ── Tailwind theme tokens ───────────────────────────────────────────────── */
+
+@theme inline {
+  --color-win-surface: var(--win-surface);
+  --color-win-surface-hover: var(--win-surface-hover);
+  --color-win-text: var(--win-text);
+}
+
+/* ── Win 3.1 bevel utilities ─────────────────────────────────────────────── */
+
 @utility win31-outset {
   box-shadow:
-    inset 1px 1px 0 0 #fff,
-    inset -1px -1px 0 0 #808080,
-    inset 2px 2px 0 0 #dfdfdf,
-    inset -2px -2px 0 0 #000;
-}
-@utility win31-outset-dark {
-  box-shadow:
-    inset 1px 1px 0 0 #808080,
-    inset -1px -1px 0 0 #000;
+    inset 1px 1px 0 0 var(--win-bevel-light),
+    inset -1px -1px 0 0 var(--win-bevel-dark),
+    inset 2px 2px 0 0 var(--win-bevel-light-inner),
+    inset -2px -2px 0 0 var(--win-bevel-dark-inner);
 }
 @utility win31-button-outset {
   box-shadow:
-    inset 1px 1px 0 0 #fff,
-    inset -1px -1px 0 0 #808080;
-}
-@utility win31-button-outset-dark {
-  box-shadow:
-    inset 1px 1px 0 0 #707070,
-    inset -1px -1px 0 0 #000;
+    inset 1px 1px 0 0 var(--win-btn-bevel-light),
+    inset -1px -1px 0 0 var(--win-btn-bevel-dark);
 }
 @utility win31-button-inset {
   box-shadow:
-    inset 1px 1px 0 0 #808080,
-    inset -1px -1px 0 0 #fff;
+    inset 1px 1px 0 0 var(--win-btn-bevel-dark),
+    inset -1px -1px 0 0 var(--win-btn-bevel-light);
 }
-@utility win31-button-inset-dark {
+
+/* ── Win 3.1 scrollbar ───────────────────────────────────────────────────── */
+
+* {
+  scrollbar-color: var(--win-surface) var(--win-scrollbar-dither-b);
+}
+
+::-webkit-scrollbar {
+  width: var(--win-scrollbar-size);
+  height: var(--win-scrollbar-size);
+}
+
+::-webkit-scrollbar-track {
+  background:
+    conic-gradient(
+        var(--win-scrollbar-dither-a) 0.25turn,
+        var(--win-scrollbar-dither-b) 0.25turn 0.5turn,
+        var(--win-scrollbar-dither-a) 0.5turn 0.75turn,
+        var(--win-scrollbar-dither-b) 0.75turn
+      )
+      top left / 2px 2px repeat;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--win-surface);
   box-shadow:
-    inset 1px 1px 0 0 #000,
-    inset -1px -1px 0 0 #707070;
+    inset 1px 1px 0 0 var(--win-btn-bevel-light),
+    inset -1px -1px 0 0 var(--win-btn-bevel-dark);
+  min-height: 24px;
 }
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--win-surface-hover);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--win-surface);
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
 
 body {
   font-family: "Unifont", monospace;
