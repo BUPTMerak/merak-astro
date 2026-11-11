@@ -87,7 +87,7 @@ function buildCharVectors(font: string) {
   const canvas = document.createElement("canvas");
   canvas.width = CHAR_W;
   canvas.height = CHAR_H;
-  const ctx = canvas.getContext("2d")!;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
 
   const chars: string[] = [];
   for (let c = 32; c <= 126; c++) chars.push(String.fromCharCode(c));
@@ -301,11 +301,12 @@ export function TesseractWindow() {
 
     const { findChar, cache } = charDataRef.current;
     const sceneCanvas = document.createElement("canvas");
-    const ctx = sceneCanvas.getContext("2d")!;
+    const ctx = sceneCanvas.getContext("2d", { willReadFrequently: true })!;
 
     let time = 0;
     let lastTs = 0;
     let animId = 0;
+    const frozen = new URLSearchParams(window.location.search).has("freeze");
 
     const { cols, rows } = computeGridSize(cw, ch, getFontSize());
     sceneCanvas.width = cols * SSX;
@@ -322,7 +323,7 @@ export function TesseractWindow() {
     function frame(ts: number) {
       const dt = lastTs ? (ts - lastTs) / 1000 : 1 / 60;
       lastTs = ts;
-      if (!reducedMotion) time += dt * 0.5;
+      if (!reducedMotion && !frozen) time += dt * 0.5;
 
       const sw = sceneCanvas.width;
       const sh = sceneCanvas.height;

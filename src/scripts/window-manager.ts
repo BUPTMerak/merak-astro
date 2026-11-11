@@ -1,5 +1,14 @@
 import interact from "interactjs";
 
+import {
+  applyWarp,
+  initWarp,
+  jacobianAt,
+  slotGeometry,
+  warpEnabled,
+  whenWarpReady,
+} from "./crt-warp";
+
 const MIN_W = 200;
 const MIN_H = 80;
 
@@ -21,8 +30,23 @@ const RESIZE_SVG = `<svg viewBox="0 0 12 12" class="h-full w-full"><line x1="10"
 // Helpers
 // ---------------------------------------------------------------------------
 
+function mulberry32(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const seedParam =
+  typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("seed") : null;
+const rng = seedParam !== null ? mulberry32(Number(seedParam)) : Math.random;
+
 function rand(lo: number, hi: number) {
-  return lo + Math.random() * (hi - lo);
+  return lo + rng() * (hi - lo);
 }
 
 function slotOf(win: HTMLElement): HTMLElement {
@@ -35,6 +59,17 @@ function slotOf(win: HTMLElement): HTMLElement {
 
 const NAV_Z = 9999;
 
+/**
+ * The desktop lives inside `.crt-curve`, which applies a uniform perspective
+ * zoom (~1.043x). interact.js reports deltas in screen pixels, but left/top/
+ * width/height are in the un-zoomed local space, so they have to be divided by
+ * this factor or windows drift away from the cursor while dragging.
+ */
+function localScale(el: HTMLElement) {
+  const rect = el.getBoundingClientRect();
+  return rect.width > 0 && el.offsetWidth > 0 ? rect.width / el.offsetWidth : 1;
+}
+
 function bringToFront(el: HTMLElement) {
   if (el.dataset.slot === "nav") {
     el.style.zIndex = String(NAV_Z);
@@ -43,13 +78,7 @@ function bringToFront(el: HTMLElement) {
   el.style.zIndex = String(++zCounter);
 }
 
-function applyAbsolute(
-  el: HTMLElement,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-) {
+function applyAbsolute(el: HTMLElement, x: number, y: number, w: number, h: number) {
   Object.assign(el.style, {
     position: "absolute",
     left: `${Math.round(x)}px`,
@@ -75,15 +104,13 @@ function positionSlots() {
   const dh = desktop.offsetHeight;
 
   const helloSlot = desktop.querySelector<HTMLElement>('[data-slot="hello"]');
-  const tessSlot = desktop.querySelector<HTMLElement>(
-    '[data-slot="tesseract"]',
-  );
+  const tessSlot = desktop.querySelector<HTMLElement>('[data-slot="tesseract"]');
   const navSlot = desktop.querySelector<HTMLElement>('[data-slot="nav"]');
   if (!helloSlot || !tessSlot || !navSlot) return;
 
   desktop.style.position = "relative";
 
-  const navH = navSlot.getBoundingClientRect().height;
+  const navH = navSlot.offsetHeight;
   const navW = Math.min(dw * 0.45, 520);
   const navX = (dw - navW) / 2;
   const navY = dh - navH - dh * 0.03;
@@ -114,6 +141,10 @@ function registerWindow(win: HTMLElement) {
   managedWindows.add(win);
 
   const slot = slotOf(win);
+  // Apply immediately when the map is already decoded (popups), and again once
+  // it is ready on first load.
+  applyWarp(slot);
+  whenWarpReady(() => applyWarp(slot));
 
   const closeBtn = win.querySelector<HTMLElement>("[data-window-close]");
   closeBtn?.addEventListener("click", () => {
@@ -129,11 +160,30 @@ function registerWindow(win: HTMLElement) {
       inertia: false,
       listeners: {
         move(event: Interact.DragEvent) {
-          slot.style.left =
-            (parseFloat(slot.style.left) || 0) + event.dx + "px";
-          slot.style.top =
-            (parseFloat(slot.style.top) || 0) + event.dy + "px";
+          const g = slotGeometry(slot);
+          const k = g?.k ?? localScale(slot);
+
+          // The window's painted position is `layout + field(layout)`. The
+          // field changes as the window moves, so a layout delta of d moves
+          // the painted window by J*d (screen). Invert J to make the window
+          // track the cursor 1:1 while it follows the glass.
+          let lx = event.dx / k;
+          let ly = event.dy / k;
+
+          if (g && warpEnabled()) {
+            const [jxx, jxy, jyx, jyy] = jacobianAt(g.cx, g.cy);
+            const det = jxx * jyy - jxy * jyx || 1;
+            lx = (jyy * (event.dx / k) - jxy * (event.dy / k)) / det;
+            ly = (-jyx * (event.dx / k) + jxx * (event.dy / k)) / det;
+          }
+
+          slot.style.left = (parseFloat(slot.style.left) || 0) + lx + "px";
+          slot.style.top = (parseFloat(slot.style.top) || 0) + ly + "px";
+          applyWarp(slot);
           bringToFront(slot);
+        },
+        end() {
+          applyWarp(slot);
         },
       },
     })
@@ -150,9 +200,19 @@ function registerWindow(win: HTMLElement) {
       inertia: false,
       listeners: {
         move(event: Interact.ResizeEvent) {
-          slot.style.width = event.rect.width + "px";
-          slot.style.height = event.rect.height + "px";
+          // The painted box is scaled non-uniformly by the glass Jacobian, so
+          // width and height need their own screen->local factor. The
+          // transform is frozen until `end`, which keeps both factors stable
+          // for the duration of the gesture.
+          const rect = slot.getBoundingClientRect();
+          const sx = rect.width > 0 && slot.offsetWidth > 0 ? rect.width / slot.offsetWidth : 1;
+          const sy = rect.height > 0 && slot.offsetHeight > 0 ? rect.height / slot.offsetHeight : 1;
+          slot.style.width = event.rect.width / sx + "px";
+          slot.style.height = event.rect.height / sy + "px";
           bringToFront(slot);
+        },
+        end() {
+          applyWarp(slot);
         },
       },
     });
@@ -162,16 +222,11 @@ function registerWindow(win: HTMLElement) {
 // Popup windows from <template>
 // ---------------------------------------------------------------------------
 
-function createPopupEl(
-  id: string,
-  title: string,
-  content: DocumentFragment,
-): HTMLElement {
+function createPopupEl(id: string, title: string, content: DocumentFragment): HTMLElement {
   const el = document.createElement("div");
   el.setAttribute("data-window", "");
   el.setAttribute("data-window-id", id);
-  el.className =
-    "flex flex-col border-2 border-win-surface bg-win-surface win31-outset";
+  el.className = "flex flex-col border-2 border-win-surface bg-win-surface win31-outset";
 
   const titleBar = document.createElement("div");
   titleBar.setAttribute("data-window-titlebar", "");
@@ -207,8 +262,7 @@ function createPopupEl(
   const resizeHandle = document.createElement("div");
   resizeHandle.setAttribute("data-window-resize", "");
   resizeHandle.setAttribute("aria-hidden", "true");
-  resizeHandle.className =
-    "absolute right-0 bottom-0 z-10 h-3 w-3 cursor-se-resize";
+  resizeHandle.className = "absolute right-0 bottom-0 z-10 h-3 w-3 cursor-se-resize";
   resizeHandle.innerHTML = RESIZE_SVG;
   body.appendChild(resizeHandle);
 
@@ -231,9 +285,7 @@ function openPopup(id: string) {
     return;
   }
 
-  const tpl = document.querySelector<HTMLTemplateElement>(
-    `template[data-window-template="${id}"]`,
-  );
+  const tpl = document.querySelector<HTMLTemplateElement>(`template[data-window-template="${id}"]`);
   if (!tpl) return;
 
   const title = tpl.dataset.windowTitle || `C:\\${id.toUpperCase()}.EXE`;
@@ -259,14 +311,12 @@ function openPopup(id: string) {
 }
 
 function setupPopupButtons() {
-  document
-    .querySelectorAll<HTMLElement>("[data-open-window]")
-    .forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const id = btn.dataset.openWindow;
-        if (id) openPopup(id);
-      });
+  document.querySelectorAll<HTMLElement>("[data-open-window]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.openWindow;
+      if (id) openPopup(id);
     });
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -274,14 +324,24 @@ function setupPopupButtons() {
 // ---------------------------------------------------------------------------
 
 function init() {
-  desktop = document.querySelector("[data-desktop]");
+  const el = document.querySelector<HTMLElement>("[data-desktop]");
+  if (!el) return;
+  desktop = el;
+
+  // Wait for fonts + two frames so flex layout and font metrics settle before
+  // reading offsetWidth (otherwise the seeded layout uses a transient width).
+  const start = () => {
+    if (!desktop) return;
+    positionSlots();
+    initWarp();
+    desktop.querySelectorAll<HTMLElement>("[data-window]").forEach(registerWindow);
+    startWatching();
+  };
+  document.fonts.ready.then(() => requestAnimationFrame(() => requestAnimationFrame(start)));
+}
+
+function startWatching() {
   if (!desktop) return;
-
-  positionSlots();
-
-  desktop
-    .querySelectorAll<HTMLElement>("[data-window]")
-    .forEach(registerWindow);
 
   const observer = new MutationObserver((mutations) => {
     for (const m of mutations) {
@@ -299,4 +359,8 @@ function init() {
   setupPopupButtons();
 }
 
-init();
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init, { once: true });
+} else {
+  init();
+}
