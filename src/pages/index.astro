@@ -29,6 +29,15 @@ const icp = import.meta.env.PUBLIC_ICP;
       <p>About: Hello! Welcome to my corner of the internet. I build things for the web.</p>
       <p>Projects: Directory of C:\PROJECTS. Projects coming soon…</p>
       <p>Contact: Get in touch…</p>
+      {
+        icp && (
+          <p>
+            <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
+              {icp}
+            </a>
+          </p>
+        )
+      }
     </div>
     <noscript>
       <p class="crt-noscript">This experience needs JavaScript enabled.</p>
