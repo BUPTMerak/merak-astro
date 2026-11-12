@@ -2,10 +2,12 @@
 import sphereWide from "@/assets/sphere_wide.png";
 import Layout from "@/layouts/Layout.astro";
 import "@/styles/global.css";
+
+const icp = import.meta.env.PUBLIC_ICP;
 ---
 
 <Layout>
-  <div class="crt-gpu" data-crt-gpu data-map={sphereWide.src}>
+  <div class="crt-gpu" data-crt-gpu data-map={sphereWide.src} data-icp={icp}>
     <canvas
       data-crt-canvas
       role="img"
@@ -15,7 +17,7 @@ import "@/styles/global.css";
       Merak — Building Things for the Web. A retro-terminal portfolio. Welcome to the retro
       terminal! System initialized successfully. Ready for input. About: Hello! Welcome to my corner
       of the internet. I build things for the web. Projects: Directory of C:\PROJECTS, projects
-      coming soon. Contact: get in touch. A standard DOM version is available at /dom.
+      coming soon. Contact: get in touch.
     </p>
     <div class="crt-fallback">
       <h1>Merak — Building Things for the Web</h1>
@@ -28,11 +30,8 @@ import "@/styles/global.css";
       <p>Projects: Directory of C:\PROJECTS. Projects coming soon…</p>
       <p>Contact: Get in touch…</p>
     </div>
-    <a class="crt-skip" href="/dom">Open the standard DOM version</a>
     <noscript>
-      <p class="crt-noscript">
-        This WebGL experience needs JavaScript. <a href="/dom">Open the standard version</a>.
-      </p>
+      <p class="crt-noscript">This experience needs JavaScript enabled.</p>
     </noscript>
   </div>
 </Layout>
@@ -72,20 +71,6 @@ import "@/styles/global.css";
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
-  }
-  .crt-skip {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    z-index: 10;
-    transform: translateY(-200%);
-    padding: 0.5rem 1rem;
-    background: #fff;
-    color: #000;
-    font: 12px / 1.4 monospace;
-  }
-  .crt-skip:focus {
-    transform: none;
   }
   .crt-noscript {
     position: absolute;

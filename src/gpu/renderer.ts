@@ -258,6 +258,8 @@ export interface CrtRendererOptions {
   dark: boolean;
   flat?: boolean;
   seed?: number;
+  /** ICP filing text (PUBLIC_ICP); empty when unset. */
+  icp?: string;
 }
 
 export class CrtRenderer {
@@ -359,6 +361,11 @@ export class CrtRenderer {
       mobile: this.isMobile,
       zoom: this.transform.scale,
     });
+    this.scene.icp = opts.icp ?? "";
+    this.scene.layout(this.contentW, this.contentH, {
+      mobile: this.isMobile,
+      zoom: this.transform.scale,
+    });
   }
 
   resize() {
@@ -453,8 +460,15 @@ export class CrtRenderer {
       palette: this.palette,
       quad: this.quad,
       glyph: this.glyph,
-      atlas: (size, weight, mono) =>
-        getAtlas(this.gl, size, weight, this.dpr, mono ? MONO_STACK : "Unifont, monospace"),
+      atlas: (size, weight, mono, extra) =>
+        getAtlas(
+          this.gl,
+          size,
+          weight,
+          this.dpr,
+          mono ? MONO_STACK : "Unifont, monospace",
+          extra,
+        ),
       // The window layer is rasterised unscaled, like the browser's own
       // layer; the zoom happens when it is composited onto the flat screen.
       transform: IDENTITY,

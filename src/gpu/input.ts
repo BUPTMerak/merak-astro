@@ -52,7 +52,7 @@ export class InputController {
       return;
     }
     const { win, part, navIndex } = hit;
-    if (part === "close" || part === "max" || part === "min" || part === "resize") {
+    if (part === "close" || part === "max" || part === "min" || part === "resize" || part === "icp") {
       win.hover = part;
     }
     if (part === "navbtn") win.hoverNav = navIndex;
@@ -61,7 +61,7 @@ export class InputController {
         ? "se-resize"
         : part === "title"
           ? "move"
-          : part === "close" || part === "max" || part === "min" || part === "navbtn"
+          : part === "close" || part === "max" || part === "min" || part === "navbtn" || part === "icp"
             ? "pointer"
             : "default";
   }
@@ -114,7 +114,8 @@ export class InputController {
       hit.part === "close" ||
       hit.part === "min" ||
       hit.part === "max" ||
-      hit.part === "navbtn"
+      hit.part === "navbtn" ||
+      hit.part === "icp"
     ) {
       this.down = {
         win: hit.win,
@@ -175,6 +176,10 @@ export class InputController {
   private activate(down: { win: WindowState; part: string; navIndex: number }) {
     if (down.part === "close") {
       this.renderer.scene.close(down.win);
+      return;
+    }
+    if (down.part === "icp") {
+      window.open("https://beian.miit.gov.cn/", "_blank", "noopener");
       return;
     }
     if (down.part === "navbtn") {

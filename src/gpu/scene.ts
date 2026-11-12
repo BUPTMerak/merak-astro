@@ -43,6 +43,7 @@ export interface Metrics {
   navBtnPadX: number;
   navGap: number;
   navH: number;
+  icpSize: number;
 }
 
 const DESKTOP_METRICS: Metrics = {
@@ -68,6 +69,7 @@ const DESKTOP_METRICS: Metrics = {
   navBtnPadX: 8,
   navGap: 2,
   navH: 53.3333,
+  icpSize: 8,
 };
 
 const TABLET_METRICS: Metrics = {
@@ -93,6 +95,7 @@ const TABLET_METRICS: Metrics = {
   navBtnPadX: 8,
   navGap: 2,
   navH: 54.8333,
+  icpSize: 8,
 };
 
 const PHONE_METRICS: Metrics = {
@@ -118,6 +121,7 @@ const PHONE_METRICS: Metrics = {
   navBtnPadX: 12,
   navGap: 4,
   navH: 61.5,
+  icpSize: 10,
 };
 
 export function metricsFor(width: number): Metrics {
@@ -138,7 +142,7 @@ export interface WindowState {
   h: number;
   z: number;
   closed: boolean;
-  hover: "min" | "max" | "close" | "resize" | null;
+  hover: "min" | "max" | "close" | "resize" | "icp" | null;
   hoverNav: number;
   scrollY: number;
   maxScroll: number;
@@ -167,7 +171,7 @@ export interface DrawContext {
   palette: Palette;
   quad: QuadBatch;
   glyph: GlyphBatch;
-  atlas: (size: number, weight: number, mono?: boolean) => GlyphAtlas;
+  atlas: (size: number, weight: number, mono?: boolean, extra?: string) => GlyphAtlas;
   transform: ContentTransform;
   cssW: number;
   cssH: number;
@@ -274,6 +278,10 @@ export class Scene {
   private zoom = 1;
   private z = 10;
   private popupCount = 0;
+  /** ICP filing link text from PUBLIC_ICP; empty when unset. */
+  icp = "";
+  /** Wrapped ICP lines and their box inside the nav window (local px). */
+  private icpLayout: { x: number; w: number; lines: string[] } | null = null;
   navButtons: {
     label: string;
     x: number;
@@ -310,7 +318,13 @@ export class Scene {
     // with the zoom even though it is written in unzoomed CSS px.
     const zoom = this.zoom;
     const navW = Math.round(Math.min(contentW * 0.45, 520));
-    const navMeasured = this.metrics.navH * zoom;
+    // Buttons depend only on metrics; the ICP wrap needs them, and the nav
+    // height needs the wrapped line count.
+    this.computeNavButtons(navW);
+    this.icpLayout = this.wrapIcp(navW);
+    const navNaturalH =
+      BORDER * 2 + this.metrics.titleH + this.metrics.navPadY * 2 + this.navRowH();
+    const navMeasured = navNaturalH * zoom;
     const navH = Math.round(navMeasured);
     const nav: WindowState = {
       id: "nav",
@@ -360,7 +374,7 @@ export class Scene {
     this.windows = [hello, tess, nav];
     this.z = 12;
     this.popupCount = 0;
-    this.computeNavButtons(contentW);
+    this.computeNavButtons(navW);
   }
 
   private layoutMobile(contentW: number, contentH: number) {
@@ -377,8 +391,13 @@ export class Scene {
       m.blank +
       m.bodyLine;
     const helloH = Math.min(contentH * 0.5, BORDER * 2 + m.titleH + textH);
-    const navH = m.navH;
     const navW = Math.min(contentW, this.navNaturalWidth());
+    // Buttons, then ICP wrap (a wrapped block makes the row, and the nav, taller).
+    this.computeNavButtons(navW);
+    this.icpLayout = this.wrapIcp(navW);
+    // The mobile nav stays in flow (no applyAbsolute rounding): keep the
+    // fractional height the flexbox actually lays out.
+    const navH = BORDER * 2 + m.titleH + m.navPadY * 2 + this.navRowH();
     const navY = contentH - navH;
     const gap = 12;
     const hello: WindowState = {
@@ -408,7 +427,50 @@ export class Scene {
     this.windows = [hello, tess, nav];
     this.z = 12;
     this.popupCount = 0;
-    this.computeNavButtons(contentW);
+    this.computeNavButtons(navW);
+  }
+
+  /** Unifont advance: halfwidth glyphs are size/2, CJK fullwidth are size. */
+  private icpCharW(ch: string, size: number): number {
+    const fullwidth =
+      /[\u2e80-\u9fff\uac00-\ud7ff\uf900-\ufaff\uff00-\uff60\u3000-\u303f]/.test(ch);
+    return fullwidth ? size : size * 0.5;
+  }
+
+  private icpTextWidth(text: string, size: number): number {
+    let w = 0;
+    for (const ch of text) w += this.icpCharW(ch, size);
+    return w;
+  }
+
+  /** Greedy char wrap of the ICP text into the space right of the buttons. */
+  private wrapIcp(navW: number): { x: number; w: number; lines: string[] } | null {
+    if (!this.icp) return null;
+    const m = this.metrics;
+    const last = this.navButtons[this.navButtons.length - 1];
+    // navButtons x's already include the border + row padding.
+    const buttonsEnd = last ? last.x + last.w : 0;
+    const x = buttonsEnd + (last ? m.navGap : 0);
+    const avail = Math.max(m.icpSize, navW - BORDER - m.navPadX - x);
+    const lines: string[] = [];
+    let line = "";
+    for (const ch of this.icp) {
+      if (line && this.icpTextWidth(line + ch, m.icpSize) > avail) {
+        lines.push(line);
+        line = ch;
+      } else {
+        line += ch;
+      }
+    }
+    if (line) lines.push(line);
+    return { x, w: Math.max(...lines.map((l) => this.icpTextWidth(l, m.icpSize))), lines };
+  }
+
+  /** Height of the nav button row content (buttons vs wrapped ICP block). */
+  private navRowH(): number {
+    const m = this.metrics;
+    const icp = this.icpLayout ? this.icpLayout.lines.length * m.icpSize * 1.5 : 0;
+    return Math.max(m.navBtnH, icp);
   }
 
   private navNaturalWidth(): number {
@@ -418,7 +480,8 @@ export class Scene {
       (sum, label) => sum + label.length * (m.navSize * 0.5) + m.navBtnPadX * 2,
       0,
     );
-    return BORDER * 2 + m.navPadX * 2 + buttons + (labels.length - 1) * m.navGap;
+    const icpW = this.icp ? m.navGap + this.icpTextWidth(this.icp, m.icpSize) : 0;
+    return BORDER * 2 + m.navPadX * 2 + buttons + (labels.length - 1) * m.navGap + icpW;
   }
 
   private win(kind: WindowKind): WindowState {
@@ -440,7 +503,7 @@ export class Scene {
     };
   }
 
-  private computeNavButtons(contentW: number) {
+  private computeNavButtons(navW: number) {
     const nav = this.windows.find((w) => w.kind === "nav");
     if (!nav) return;
     const defs: { label: string; action: "home" | "about" | "projects" | "contact" }[] = [
@@ -457,7 +520,7 @@ export class Scene {
       x += w + m.navGap;
       return btn;
     });
-    void contentW;
+    void navW;
   }
 
   scrollable(win: WindowState): boolean {
@@ -541,6 +604,10 @@ export class Scene {
 
       // Nav body buttons.
       if (win.kind === "nav") {
+        const box = this.icpBox(win);
+        if (box && px >= box.x - 2 && px <= box.x + box.w + 2 && py >= box.y - 2 && py <= box.y + box.h + 2) {
+          return { win, part: "icp", navIndex: -1 };
+        }
         const bodyY = win.y + BORDER + this.metrics.titleH;
         if (py >= bodyY && py <= bodyY + 25) {
           for (let i = 0; i < this.navButtons.length; i++) {
@@ -859,9 +926,43 @@ export class Scene {
       );
     }
     ctx.flushGlyphs();
+
+    // ICP filing link, right of the buttons (ml-auto in the DOM).
+    const icp = this.icpLayout;
+    if (icp && this.icp) {
+      const font = ctx.atlas(m.icpSize, 400, false, this.icp);
+      this.setAtlas(ctx, font);
+      const box = this.icpBox(win);
+      if (box) {
+        const lh = m.icpSize * 1.5;
+        const base = box.y + (lh - (font.ascent + font.descent)) / 2 + font.ascent;
+        for (let i = 0; i < icp.lines.length; i++) {
+          // Mixed-width text: advance per glyph (the batch is monospace-only).
+          let pen = box.x;
+          for (const ch of icp.lines[i]) {
+            addText(ctx.glyph, font, ch, pen, base + i * lh, win.hover === "icp" ? p.text : p.dim);
+            pen += this.icpCharW(ch, m.icpSize);
+          }
+        }
+      }
+      ctx.flushGlyphs();
+    }
     void win;
     void bodyX;
     return 0;
+  }
+
+  /** Box of the ICP link inside the nav window (window-local px). */
+  private icpBox(win: WindowState): { x: number; y: number; w: number; h: number } | null {
+    const icp = this.icpLayout;
+    if (!icp || !this.icp) return null;
+    const m = this.metrics;
+    const right = win.x + win.w - BORDER - m.navPadX;
+    const x = Math.max(win.x + icp.x, right - icp.w);
+    const lh = m.icpSize * 1.5;
+    const blockH = icp.lines.length * lh;
+    const y = win.y + BORDER + m.titleH + m.navPadY + Math.max(0, (m.navBtnH - blockH) / 2);
+    return { x, y, w: icp.w, h: Math.max(blockH, 8) };
   }
 
   private drawButtonBox(

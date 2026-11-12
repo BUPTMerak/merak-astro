@@ -50,14 +50,16 @@ export function getAtlas(
   weight: number,
   dpr: number,
   family = "Unifont, monospace",
+  extra = "",
 ): GlyphAtlas {
   // Small text matches the DOM's hinted, pixel-snapped rasterisation best at
   // 1x; larger glyphs benefit from supersampling before the GPU filters them.
   const ss = size >= 12 ? Math.max(ATLAS_SS, 2) : 1;
-  const key = `${size}|${weight}|${dpr}|${family}|${ss}`;
+  const key = `${size}|${weight}|${dpr}|${family}|${ss}|${extra}`;
   const hit = cache.get(key);
   if (hit) return hit;
 
+  const chars = Array.from(new Set([...CHARS, ...extra]));
   const pixelScale = dpr * ss;
   const px = size * pixelScale;
   const measureCanvas = document.createElement("canvas");
@@ -68,12 +70,22 @@ export function getAtlas(
   const ascentPx = metrics.fontBoundingBoxAscent ?? px * 0.8;
   const descentPx = metrics.fontBoundingBoxDescent ?? px * 0.2;
   const pad = Math.max(1, Math.ceil(pixelScale));
+  // Fullwidth glyphs (e.g. the ICP filing text) are wider than the monospace
+  // advance; size the cell by the widest actual ink so it cannot bleed into
+  // the neighbouring cell.
+  let inkW = advancePx;
+  for (const ch of chars) {
+    const m = mctx.measureText(ch);
+    if (m.actualBoundingBoxLeft !== undefined) {
+      inkW = Math.max(inkW, m.actualBoundingBoxLeft + m.actualBoundingBoxRight);
+    }
+  }
   // +1 leaves room for the +-0.5px subpixel shift of the phase variants.
-  const cellW = Math.ceil(advancePx) + pad * 2 + 1;
+  const cellW = Math.ceil(inkW) + pad * 2 + 1;
   const cellH = Math.ceil(ascentPx + descentPx) + pad * 2 + 1;
 
   const cols = 16;
-  const rows = Math.ceil((CHARS.length * GLYPH_PHASES * GLYPH_PHASES_Y) / cols);
+  const rows = Math.ceil((chars.length * GLYPH_PHASES * GLYPH_PHASES_Y) / cols);
   const canvas = document.createElement("canvas");
   canvas.width = cellW * cols;
   canvas.height = cellH * rows;
@@ -86,8 +98,8 @@ export function getAtlas(
   const glyphs = new Map<string, GlyphRect[]>();
   const W = canvas.width;
   const H = canvas.height;
-  for (let i = 0; i < CHARS.length; i++) {
-    const ch = CHARS[i];
+  for (let i = 0; i < chars.length; i++) {
+    const ch = chars[i];
     const rects: GlyphRect[] = [];
     for (let xp = 0; xp < GLYPH_PHASES; xp++) {
       for (let yp = 0; yp < GLYPH_PHASES_Y; yp++) {
@@ -99,11 +111,13 @@ export function getAtlas(
         const shiftX = xp / GLYPH_PHASES - 0.5;
         const shiftY = yp / GLYPH_PHASES_Y - 0.5;
         ctx.fillText(ch, cx + pad + shiftX, cy + pad + ascentPx + shiftY);
+        // Inset the UVs by half a texel: linear filtering at the quad edges
+        // would otherwise bleed the neighbouring cell's ink in.
         rects.push({
-          u0: cx / W,
-          v0: cy / H,
-          u1: (cx + cellW) / W,
-          v1: (cy + cellH) / H,
+          u0: (cx + 0.5) / W,
+          v0: (cy + 0.5) / H,
+          u1: (cx + cellW - 0.5) / W,
+          v1: (cy + cellH - 0.5) / H,
         });
       }
     }

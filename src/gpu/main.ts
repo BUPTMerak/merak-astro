@@ -23,6 +23,7 @@ export async function mountCrt() {
       dark,
       flat: params.has("flat"),
       seed: params.has("seed") ? Number(params.get("seed")) : undefined,
+      icp: root.dataset.icp ?? "",
     });
     renderer.tessFreeze = params.has("freeze");
     new InputController(canvas, renderer);
